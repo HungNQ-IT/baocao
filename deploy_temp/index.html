@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô Phỏng Quỹ Đạo Tên Lửa</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050510;
+            --bg-panel: rgba(20, 20, 35, 0.6);
+            --primary: #00f3ff;
+            --primary-dim: rgba(0, 243, 255, 0.1);
+            --accent: #ff0055;
+            --text-main: #e0e0e0;
+            --text-muted: #8a8a9b;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: blur(12px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.05) 0%, transparent 20%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Background Stars Animation */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            background-image:
+                radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 3px),
+                radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 2px),
+                radial-gradient(white, rgba(255, 255, 255, .1) 2px, transparent 3px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+        }
+
+        h1,
+        h2,
+        h3,
+        .stat-value,
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            padding: 24px;
+            height: 100vh;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        /* Panel Styles */
+        .panel {
+            background: var(--bg-panel);
+            backdrop-filter: var(--glass);
+            -webkit-backdrop-filter: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            overflow-y: auto;
+            gap: 24px;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+        }
+
+        /* Inputs */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-dim);
+        }
+
+        .range-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: grid;
+            gap: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--primary), #0099cc);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+        }
+
+        .btn-pause {
+            background: rgba(255, 217, 61, 0.1);
+            border: 1px solid #ffd93d;
+            color: #ffd93d;
+        }
+
+        .btn-pause:hover {
+            background: rgba(255, 217, 61, 0.2);
+        }
+
+        .btn-reset {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 0, 85, 0.2);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        /* Phase Indicator */
+        .phase-indicator {
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .phase-1 {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            color: #ff6b35;
+        }
+
+        .phase-2 {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+
+        .phase-3 {
+            background: rgba(255, 107, 107, 0.2);
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .phase-landed {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-rows: 2fr 1fr;
+            gap: 24px;
+            height: 100%;
+        }
+
+        .visualizer {
+            position: relative;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .visualizer canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            opacity: 0.5;
+        }
+
+        .tl {
+            top: 10px;
+            left: 10px;
+            border-right: 0;
+            border-bottom: 0;
+        }
+
+        .tr {
+            top: 10px;
+            right: 10px;
+            border-left: 0;
+            border-bottom: 0;
+        }
+
+        .bl {
+            bottom: 10px;
+            left: 10px;
+            border-right: 0;
+            border-top: 0;
+        }
+
+        .br {
+            bottom: 10px;
+            right: 10px;
+            border-left: 0;
+            border-top: 0;
+        }
+
+        .charts-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+
+        .chart-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        canvas.chart {
+            flex: 1;
+            width: 100%;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+                height: auto;
+            }
+
+            .sidebar {
+                max-height: none;
+                overflow: visible;
+            }
+
+            .main-content {
+                height: 800px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .charts-area {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .charts-area {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="panel sidebar">
+            <div class="header">
+                <h1>ROCKET SIM</h1>
+            </div>
+
+            <div class="controls">
+                <div class="input-group">
+                    <label>Tốc độ đốt nhiên liệu (kg/s)</label>
+                    <input type="number" id="dm_dt" placeholder="-50" step="1" value="-50">
+                </div>
+                <div class="input-group">
+                    <label>Khối lượng ban đầu m₀ (kg)</label>
+                    <input type="number" id="m0" placeholder="1000" step="10" value="1000">
+                </div>
+                <div class="input-group">
+                    <label>Khối lượng rỗng mₜ (kg)</label>
+                    <input type="number" id="mt" placeholder="200" step="10" value="200">
+                </div>
+                <div class="input-group">
+                    <label>Độ cao ban đầu h₀ (m)</label>
+                    <input type="number" id="h0" placeholder="0" step="10" value="0">
+                </div>
+                <div class="input-group">
+                    <label>Vận tốc phụt khí v' (m/s)</label>
+                    <input type="number" id="v_exhaust" placeholder="2500" step="100" value="2500">
+                </div>
+                <div class="input-group">
+                    <label>Tốc độ mô phỏng: <span id="speedVal">5x</span></label>
+                    <div class="range-wrap">
+                        <input type="range" id="speed" min="1" max="20" value="5"
+                            oninput="document.getElementById('speedVal').innerText = this.value + 'x'">
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-start" onclick="startSimulation()">Khởi Chạy</button>
+                <button class="btn btn-pause" onclick="togglePause()">Tạm Dừng</button>
+                <button class="btn btn-reset" onclick="resetSimulation()">Thiết Lập Lại</button>
+            </div>
+
+            <div id="phaseIndicator" class="phase-indicator">Sẵn sàng</div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">THỜI GIAN</div>
+                    <div class="stat-value" id="statTime">0.00 s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">ĐỘ CAO</div>
+                    <div class="stat-value" id="statHeight">0.00 m</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">VẬN TỐC</div>
+                    <div class="stat-value" id="statVelocity">0.00 m/s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">KHỐI LƯỢNG</div>
+                    <div class="stat-value" id="statMass">0.00 kg</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">GIA TỐC</div>
+                    <div class="stat-value" id="statAccel">0.00 m/s²</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">MAX HEIGHT</div>
+                    <div class="stat-value" id="statMaxHeight">0.00 m</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Visualization -->
+        <main class="main-content">
+            <div class="panel visualizer">
+                <div class="hud-corner tl"></div>
+                <div class="hud-corner tr"></div>
+                <div class="hud-corner bl"></div>
+                <div class="hud-corner br"></div>
+                <canvas id="rocketCanvas"></canvas>
+            </div>
+
+            <div class="charts-area">
+                <div class="panel chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title">Quỹ Đạo: Độ Cao (y) theo Vị Trí (x)</span>
+                    </div>
+                    <canvas id="heightChart" class="chart"></canvas>
+                </div>
+                <div class="panel chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title">Độ Cao (y) theo Thời Gian (t)</span>
+                    </div>
+                    <canvas id="heightTimeChart" class="chart"></canvas>
+                </div>
+                <div class="panel chart-container">
+                    <div class="chart-header">
+                        <span class="chart-title">Vận Tốc (m/s)</span>
+                    </div>
+                    <canvas id="velocityChart" class="chart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Constants
+        const g = 9.81;
+
+        // Simulation state
+        let simulation = {
+            running: false,
+            paused: false,
+            time: 0,
+            height: 0,
+            velocity: 0,
+            mass: 0,
+            phase: 0,
+            maxHeight: 0,
+            heightHistory: [],
+            velocityHistory: [],
+            timeHistory: [],
+            animationId: null
+        };
+
+        // Input parameters
+        let params = {};
+
+        // Canvas contexts
+        const rocketCanvas = document.getElementById('rocketCanvas');
+        const rocketCtx = rocketCanvas.getContext('2d');
+        const heightCanvas = document.getElementById('heightChart');
+        const heightCtx = heightCanvas.getContext('2d');
+        const heightTimeCanvas = document.getElementById('heightTimeChart');
+        const heightTimeCtx = heightTimeCanvas.getContext('2d');
+        const velocityCanvas = document.getElementById('velocityChart');
+        const velocityCtx = velocityCanvas.getContext('2d');
+
+        // Resize handling
+        function resizeCanvases() {
+            // Main canvas
+            const visContainer = rocketCanvas.parentElement;
+            rocketCanvas.width = visContainer.clientWidth;
+            rocketCanvas.height = visContainer.clientHeight;
+
+            // Charts
+            const chartContainers = document.querySelectorAll('.chart-container');
+            chartContainers.forEach(container => {
+                const canvas = container.querySelector('canvas');
+                canvas.width = container.clientWidth - 48; // padding
+                canvas.height = container.clientHeight - 50; // header + padding
+            });
+
+            // Redraw if static
+            if (!simulation.running) {
+                drawRocket();
+                drawCharts();
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+        // Initial resize
+        setTimeout(resizeCanvases, 100);
+
+        function getParams() {
+            return {
+                dm_dt: parseFloat(document.getElementById('dm_dt').value),
+                m0: parseFloat(document.getElementById('m0').value),
+                mt: parseFloat(document.getElementById('mt').value),
+                h0: parseFloat(document.getElementById('h0').value),
+                v_exhaust: parseFloat(document.getElementById('v_exhaust').value),
+                speed: parseFloat(document.getElementById('speed').value)
+            };
+        }
+
+        function validateParams(p) {
+            if (isNaN(p.dm_dt) || p.dm_dt === 0) { alert('Vui lòng nhập tốc độ đốt nhiên liệu dm/dt!'); return false; }
+            if (isNaN(p.m0)) { alert('Vui lòng nhập khối lượng ban đầu m₀!'); return false; }
+            if (isNaN(p.mt)) { alert('Vui lòng nhập khối lượng rỗng mₜ!'); return false; }
+            if (isNaN(p.h0)) { alert('Vui lòng nhập độ cao ban đầu h₀!'); return false; }
+            if (isNaN(p.v_exhaust)) { alert('Vui lòng nhập vận tốc phụt khí v\'!'); return false; }
+            if (p.dm_dt >= 0) { alert('Tốc độ đốt nhiên liệu phải là số âm!'); return false; }
+            if (p.m0 <= 0) { alert('Khối lượng ban đầu phải dương!'); return false; }
+            if (p.mt >= p.m0 || p.mt <= 0) { alert('Khối lượng rỗng phải nhỏ hơn khối lượng ban đầu và dương!'); return false; }
+            if (p.v_exhaust <= 0) { alert('Vận tốc phụt khí phải dương!'); return false; }
+            return true;
+        }
+
+        function startSimulation() {
+            if (simulation.running && !simulation.paused) return;
+            if (simulation.paused) {
+                togglePause();
+                return;
+            }
+
+            params = getParams();
+            if (!validateParams(params)) return;
+
+            // Calculate burn time
+            params.burnTime = (params.mt - params.m0) / params.dm_dt;
+
+            // Initialize simulation
+            simulation = {
+                running: true,
+                paused: false,
+                time: 0,
+                height: params.h0,
+                velocity: 0,
+                mass: params.m0,
+                phase: 1,
+                maxHeight: params.h0,
+                posX: 0, // Li độ (vị trí ngang) - luôn = 0 vì bay thẳng đứng
+                velocityX: 0, // Vận tốc ngang = 0 (không có ngoại lực)
+                heightHistory: [{ x: 0, h: params.h0 }],
+                velocityHistory: [{ t: 0, v: 0 }],
+                timeHistory: [0],
+                debris: [], // Track detached parts
+                animationId: null
+            };
+
+            lastTime = performance.now();
+            animate();
+        }
+
+        function togglePause() {
+            if (simulation.running) {
+                simulation.paused = !simulation.paused;
+                const btn = document.querySelector('.btn-pause');
+                btn.textContent = simulation.paused ? "Tiếp Tục" : "Tạm Dừng";
+
+                if (!simulation.paused) {
+                    lastTime = performance.now();
+                    animate();
+                }
+            }
+        }
+
+        function resetSimulation() {
+            simulation.running = false;
+            simulation.paused = false;
+            if (simulation.animationId) {
+                cancelAnimationFrame(simulation.animationId);
+            }
+            simulation = {
+                running: false,
+                paused: false,
+                time: 0,
+                height: 0,
+                velocity: 0,
+                mass: 0,
+                phase: 0,
+                maxHeight: 0,
+                heightHistory: [],
+                velocityHistory: [],
+                timeHistory: [],
+                debris: [],
+                animationId: null
+            };
+
+            document.querySelector('.btn-pause').textContent = "Tạm Dừng";
+            updateStats();
+            updatePhaseIndicator();
+            drawRocket();
+            drawCharts();
+        }
+
+        let lastTime = 0;
+
+        function animate() {
+            if (!simulation.running || simulation.paused) return;
+
+            const currentTime = performance.now();
+            const realDt = (currentTime - lastTime) / 1000;
+            lastTime = currentTime;
+
+            // Limit dt to prevent huge jumps if tab was inactive
+            const dt = Math.min(realDt, 0.1) * params.speed;
+
+            // Physics update
+            updatePhysics(dt);
+
+            // Check if landed
+            if (simulation.height <= 0 && simulation.phase === 3) {
+                simulation.height = 0;
+                simulation.phase = 4; // Landed
+                simulation.running = false;
+            }
+
+            // Record history (every 0.1s simulation time approx)
+            if (simulation.timeHistory.length === 0 ||
+                simulation.time - simulation.timeHistory[simulation.timeHistory.length - 1] >= 0.1) {
+                simulation.heightHistory.push({ x: simulation.posX, h: simulation.height });
+                simulation.velocityHistory.push({ t: simulation.time, v: simulation.velocity });
+                simulation.timeHistory.push(simulation.time);
+            }
+
+            // Update display
+            updateStats();
+            updatePhaseIndicator();
+            drawRocket();
+            drawCharts();
+
+            if (simulation.running) {
+                simulation.animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        function updatePhysics(dt) {
+            simulation.time += dt;
+            simulation.posX += simulation.velocityX * dt; // Cập nhật vị trí ngang
+
+            if (simulation.phase === 1) {
+                // Phase 1: Burning fuel
+                simulation.mass = params.m0 + params.dm_dt * simulation.time;
+
+                if (simulation.mass <= params.mt) {
+                    simulation.mass = params.mt;
+                    simulation.phase = 2;
+                    separateStage(); // Trigger separation
+                }
+
+                // Thrust equation
+                const thrust = -params.v_exhaust * params.dm_dt;
+                const acceleration = (thrust / simulation.mass) - g;
+
+                simulation.velocity += acceleration * dt;
+                simulation.height += simulation.velocity * dt;
+
+            } else if (simulation.phase === 2) {
+                // Phase 2: Coasting up
+                simulation.velocity -= g * dt;
+                simulation.height += simulation.velocity * dt;
+
+                if (simulation.velocity <= 0) {
+                    simulation.velocity = 0;
+                    simulation.phase = 3;
+                }
+
+            } else if (simulation.phase === 3) {
+                // Phase 3: Falling down
+                simulation.velocity -= g * dt;
+                simulation.height += simulation.velocity * dt;
+            }
+
+            // Track max height
+            if (simulation.height > simulation.maxHeight) {
+                simulation.maxHeight = simulation.height;
+            }
+
+            // Update debris physics
+            if (simulation.debris && simulation.debris.length > 0) {
+                for (let i = simulation.debris.length - 1; i >= 0; i--) {
+                    const p = simulation.debris[i];
+                    p.vy -= g * dt; // Gravity
+                    p.x += p.vx * dt;
+                    p.y += p.vy * dt;
+                    p.rot += p.rotSpeed * dt;
+
+                    // Remove if hit ground
+                    if (p.y <= 0) {
+                        simulation.debris.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function separateStage() {
+            // Spawn 2 boosters
+            // Relative to rocket position (h)
+            // We store debris position as absolute (x, y) where y is altitude
+            // Rocket X is always 0 in physics terms (center), but we render at center of canvas
+            // Let's use relative X from rocket center
+
+            const ejectVelocity = 10;
+
+            // Left Booster
+            simulation.debris.push({
+                x: -15, // Relative offset
+                y: simulation.height,
+                vx: -ejectVelocity,
+                vy: simulation.velocity - 5, // Slightly slower than rocket
+                rot: 0,
+                rotSpeed: -2, // Spin left
+                type: 'booster'
+            });
+
+            // Right Booster
+            simulation.debris.push({
+                x: 15,
+                y: simulation.height,
+                vx: ejectVelocity,
+                vy: simulation.velocity - 5,
+                rot: 0,
+                rotSpeed: 2, // Spin right
+                type: 'booster'
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('statTime').textContent = simulation.time.toFixed(2) + ' s';
+            document.getElementById('statHeight').textContent = simulation.height.toFixed(2) + ' m';
+            document.getElementById('statVelocity').textContent = simulation.velocity.toFixed(2) + ' m/s';
+            document.getElementById('statMass').textContent = (simulation.mass || params?.m0 || 0).toFixed(2) + ' kg';
+            document.getElementById('statMaxHeight').textContent = simulation.maxHeight.toFixed(2) + ' m';
+
+            let accel = 0;
+            if (simulation.phase === 1 && simulation.mass > 0) {
+                const thrust = -params.v_exhaust * params.dm_dt;
+                accel = (thrust / simulation.mass) - g;
+            } else if (simulation.phase >= 2) {
+                accel = -g;
+            }
+            document.getElementById('statAccel').textContent = accel.toFixed(2) + ' m/s²';
+        }
+
+        function updatePhaseIndicator() {
+            const indicator = document.getElementById('phaseIndicator');
+            indicator.className = 'phase-indicator';
+
+            switch (simulation.phase) {
+                case 0:
+                    indicator.textContent = 'SẴN SÀNG';
+                    break;
+                case 1:
+                    indicator.textContent = 'GIAI ĐOẠN 1: ĐỐT NHIÊN LIỆU';
+                    indicator.classList.add('phase-1');
+                    break;
+                case 2:
+                    indicator.textContent = 'GIAI ĐOẠN 2: QUÁN TÍNH';
+                    indicator.classList.add('phase-2');
+                    break;
+                case 3:
+                    indicator.textContent = 'GIAI ĐOẠN 3: RƠI TỰ DO';
+                    indicator.classList.add('phase-3');
+                    break;
+                case 4:
+                    indicator.textContent = 'ĐÃ CHẠM ĐẤT';
+                    indicator.classList.add('phase-landed');
+                    break;
+            }
+        }
+
+        function drawRocket() {
+            const ctx = rocketCtx;
+            const width = rocketCanvas.width;
+            const height = rocketCanvas.height;
+            const padding = 60;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Setup coordinate system: x (horizontal), y (vertical)
+            const maxDisplayHeight = Math.max(simulation.maxHeight * 1.2, 1000);
+            const xRange = 200; // Range from -100 to +100 meters
+            const centerX = width / 2; // x = 0 is at center
+            const groundY = height - padding;
+
+            // Draw ground line
+            ctx.fillStyle = '#1a3009';
+            ctx.fillRect(0, groundY, width, padding);
+
+            // Draw coordinate axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            // Y-axis (vertical, at x=0)
+            ctx.beginPath();
+            ctx.moveTo(centerX, padding);
+            ctx.lineTo(centerX, groundY);
+            ctx.stroke();
+            // X-axis (horizontal, at y=0)
+            ctx.beginPath();
+            ctx.moveTo(padding, groundY);
+            ctx.lineTo(width - padding, groundY);
+            ctx.stroke();
+
+            // Draw grid and altitude markers (Y-axis)
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '10px Orbitron';
+            for (let h = 0; h <= maxDisplayHeight; h += maxDisplayHeight / 5) {
+                const y = groundY - (h / maxDisplayHeight) * (groundY - padding);
+                if (y < padding) continue;
+                ctx.fillText(Math.round(h) + 'm', centerX + 5, y + 4);
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw X-axis markers
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            for (let x = -100; x <= 100; x += 50) {
+                const canvasX = centerX + (x / xRange) * (width - 2 * padding);
+                if (canvasX < padding || canvasX > width - padding) continue;
+                ctx.fillText(x + 'm', canvasX - 10, groundY + 15);
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.beginPath();
+                ctx.moveTo(canvasX, padding);
+                ctx.lineTo(canvasX, groundY);
+                ctx.stroke();
+            }
+
+            // Calculate rocket position in canvas coordinates
+            const rocketCanvasX = centerX + (simulation.posX / xRange) * (width - 2 * padding);
+            const rocketCanvasY = groundY - (simulation.height / maxDisplayHeight) * (groundY - padding);
+
+            // Draw trajectory trail
+            if (simulation.heightHistory.length > 1) {
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                for (let i = 0; i < simulation.heightHistory.length; i++) {
+                    const point = simulation.heightHistory[i];
+                    const trailX = centerX + (point.x / xRange) * (width - 2 * padding);
+                    const trailY = groundY - (point.h / maxDisplayHeight) * (groundY - padding);
+                    if (i === 0) {
+                        ctx.moveTo(trailX, trailY);
+                    } else {
+                        ctx.lineTo(trailX, trailY);
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // Draw launch pad (at x=0, y=0)
+            drawLaunchPad(ctx, centerX, groundY);
+
+            // Draw debris
+            drawDebris(ctx, centerX, groundY, maxDisplayHeight, groundY - padding, xRange, width - 2 * padding);
+
+            // Draw rocket
+            drawRocketSprite(ctx, rocketCanvasX, rocketCanvasY, simulation.phase);
+
+            // Draw axis labels
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '12px Orbitron';
+            ctx.fillText('x (Li độ)', width - padding - 50, groundY + 30);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('y (Độ cao)', 0, 0);
+            ctx.restore();
+        }
+
+        function drawLaunchPad(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Scale for perspective
+            const scale = 1;
+
+            // Base platform
+            ctx.fillStyle = '#2a2a2a';
+            ctx.fillRect(-40, -10, 80, 10);
+
+            // Concrete foundation
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(-50, 0, 100, 20);
+
+            // Flame trench/Deflector
+            ctx.fillStyle = '#111';
+            ctx.beginPath();
+            ctx.moveTo(-15, 0);
+            ctx.lineTo(15, 0);
+            ctx.lineTo(25, 20);
+            ctx.lineTo(-25, 20);
+            ctx.fill();
+
+            // Launch Tower (Service Structure)
+            // Only draw if rocket is close to ground or for visual context
+            // We'll draw it to the left
+            const towerX = -50;
+            const towerH = 180;
+
+            // Main truss
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(towerX, 0);
+            ctx.lineTo(towerX, -towerH);
+            ctx.lineTo(towerX - 20, -towerH);
+            ctx.lineTo(towerX - 30, 0);
+            ctx.stroke();
+
+            // Cross bracing
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 0; i < towerH; i += 20) {
+                ctx.moveTo(towerX, -i);
+                ctx.lineTo(towerX - 30, -i - 20);
+                ctx.moveTo(towerX - 30, -i);
+                ctx.lineTo(towerX, -i - 20);
+            }
+            ctx.stroke();
+
+            // Service arms (retracted if flying, extended if ready)
+            // Simple logic: if h > 10, retracted
+            const retracted = simulation.height > 10;
+
+            ctx.strokeStyle = '#777';
+            ctx.lineWidth = 3;
+
+            // Arm 1 (Top)
+            ctx.beginPath();
+            ctx.moveTo(towerX, -140);
+            if (retracted) {
+                ctx.lineTo(towerX + 10, -160);
+            } else {
+                ctx.lineTo(x - towerX - 10, -140); // Reach to rocket
+            }
+            ctx.stroke();
+
+            // Arm 2 (Bottom)
+            ctx.beginPath();
+            ctx.moveTo(towerX, -60);
+            if (retracted) {
+                ctx.lineTo(towerX + 10, -80);
+            } else {
+                ctx.lineTo(x - towerX - 10, -60);
+            }
+            ctx.stroke();
+
+            // Lightning rod on top
+            ctx.strokeStyle = '#888';
+            ctx.beginPath();
+            ctx.moveTo(towerX - 10, -towerH);
+            ctx.lineTo(towerX - 10, -towerH - 30);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawDebris(ctx, centerX, groundY, maxH, scaleH, xRange, xScale) {
+            if (!simulation.debris) return;
+
+            simulation.debris.forEach(p => {
+                const canvasY = groundY - (p.y / maxH) * scaleH;
+                const canvasX = centerX + (p.x / xRange) * xScale;
+
+                ctx.save();
+                ctx.translate(canvasX, canvasY);
+                ctx.rotate(p.rot);
+
+                // Draw Booster Sprite
+                // Reuse similar style to rocket boosters
+                ctx.fillStyle = '#e0e0e0';
+                ctx.fillRect(-6, -20, 12, 40);
+
+                // Nose
+                ctx.beginPath();
+                ctx.moveTo(-6, -20);
+                ctx.lineTo(0, -30);
+                ctx.lineTo(6, -20);
+                ctx.fillStyle = '#cc0044';
+                ctx.fill();
+
+                // Engine
+                ctx.fillStyle = '#333';
+                ctx.fillRect(-5, 20, 10, 5);
+
+                ctx.restore();
+            });
+        }
+
+        function drawRocketSprite(ctx, x, y, phase) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Glow effect
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
+
+            // Rocket body main cylinder
+            const w = 14; // Width
+            const h = 60; // Height
+
+            // Body Gradient
+            const bodyGrad = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+            bodyGrad.addColorStop(0, '#ccc');
+            bodyGrad.addColorStop(0.5, '#fff');
+            bodyGrad.addColorStop(1, '#999');
+
+            ctx.fillStyle = bodyGrad;
+            ctx.fillRect(-w / 2, -h / 2, w, h);
+
+            // Black markings (checkers)
+            ctx.fillStyle = '#111';
+            ctx.fillRect(-w / 2, -h / 2 + 10, w, 5);
+            ctx.fillRect(-w / 2, h / 2 - 15, w, 5);
+
+            // Vertical line
+            ctx.fillRect(-1, -h / 2, 2, h);
+
+            // Nose cone
+            ctx.beginPath();
+            ctx.moveTo(-w / 2, -h / 2);
+            ctx.quadraticCurveTo(0, -h / 2 - 25, w / 2, -h / 2);
+            ctx.closePath();
+            ctx.fillStyle = '#ff0055'; // Red nose
+            ctx.fill();
+
+            // Cockpit Window
+            ctx.fillStyle = '#00f3ff';
+            ctx.shadowColor = '#00f3ff';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(0, -h / 2 + 20, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Side Boosters (Only in Phase 1)
+            if (phase === 1) {
+                const bW = 10;
+                const bH = 50;
+
+                // Left Booster
+                ctx.fillStyle = '#ddd';
+                ctx.fillRect(-w / 2 - bW - 2, -bH / 2 + 10, bW, bH);
+                // Nose
+                ctx.beginPath();
+                ctx.moveTo(-w / 2 - bW - 2, -bH / 2 + 10);
+                ctx.lineTo(-w / 2 - bW / 2 - 2, -bH / 2);
+                ctx.lineTo(-w / 2 - 2, -bH / 2 + 10);
+                ctx.fillStyle = '#cc0044';
+                ctx.fill();
+
+                // Right Booster
+                ctx.fillStyle = '#ddd';
+                ctx.fillRect(w / 2 + 2, -bH / 2 + 10, bW, bH);
+                // Nose
+                ctx.beginPath();
+                ctx.moveTo(w / 2 + 2, -bH / 2 + 10);
+                ctx.lineTo(w / 2 + bW / 2 + 2, -bH / 2);
+                ctx.lineTo(w / 2 + bW + 2, -bH / 2 + 10);
+                ctx.fillStyle = '#cc0044';
+                ctx.fill();
+            }
+
+            // Fins (Central only if boosters gone, or always? Let's keep central fin)
+            // Center Fin (Perspective)
+            ctx.fillStyle = '#cc0044';
+            ctx.beginPath();
+            ctx.moveTo(-2, h / 2 - 20);
+            ctx.lineTo(0, h / 2 + 10);
+            ctx.lineTo(2, h / 2 - 20);
+            ctx.closePath();
+            ctx.fill();
+
+            // Engine Nozzles
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.moveTo(-w / 2 + 2, h / 2);
+            ctx.lineTo(-w / 2, h / 2 + 5);
+            ctx.lineTo(w / 2, h / 2 + 5);
+            ctx.lineTo(w / 2 - 2, h / 2);
+            ctx.fill();
+
+            // Flame (only during phase 1)
+            if (phase === 1) {
+                // Main thrust core
+                const flameLength = 40 + Math.random() * 20;
+                const widthVar = Math.random() * 4;
+
+                // Outer glow
+                const gradient = ctx.createLinearGradient(0, h / 2 + 5, 0, h / 2 + 5 + flameLength);
+                gradient.addColorStop(0, 'rgba(255, 255, 0, 0.8)');
+                gradient.addColorStop(0.3, 'rgba(255, 100, 0, 0.6)');
+                gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+                ctx.shadowColor = '#ff4400';
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = gradient;
+
+                ctx.beginPath();
+                ctx.moveTo(-6, h / 2 + 5);
+                ctx.quadraticCurveTo(-8 - widthVar, h / 2 + 5 + flameLength * 0.3, 0, h / 2 + 5 + flameLength);
+                ctx.quadraticCurveTo(8 + widthVar, h / 2 + 5 + flameLength * 0.3, 6, h / 2 + 5);
+                ctx.closePath();
+                ctx.fill();
+
+                // Booster Flames
+                const bFlameL = 30 + Math.random() * 10;
+                // Left
+                ctx.beginPath();
+                ctx.moveTo(-20, h / 2 + 5);
+                ctx.lineTo(-25, h / 2 + 5 + bFlameL);
+                ctx.lineTo(-15, h / 2 + 5);
+                ctx.fill();
+                // Right
+                ctx.beginPath();
+                ctx.moveTo(20, h / 2 + 5);
+                ctx.lineTo(25, h / 2 + 5 + bFlameL);
+                ctx.lineTo(15, h / 2 + 5);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawCharts() {
+            drawHeightChart();
+            drawHeightTimeChart();
+            drawVelocityChart();
+        }
+
+        function drawHeightChart() {
+            const ctx = heightCtx;
+            const width = heightCanvas.width;
+            const height = heightCanvas.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (simulation.heightHistory.length < 2) return;
+
+            const maxH = Math.max(...simulation.heightHistory.map(p => p.h), 100);
+            // Li độ x luôn = 0 vì bay thẳng đứng, đặt range x từ -100 đến 100
+            const xRange = 100;
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + (i / 4) * (height - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= 4; i++) {
+                const x = padding + (i / 4) * (width - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            // Trục Y (tại x=0, giữa canvas)
+            const centerX = width / 2;
+            ctx.beginPath();
+            ctx.moveTo(centerX, padding);
+            ctx.lineTo(centerX, height - padding);
+            ctx.stroke();
+            // Trục X (tại y=0, đáy)
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Draw axis labels
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '11px Inter';
+            ctx.fillText('x (m) - Li độ', width - 70, height - padding + 15);
+            ctx.fillText('y (m)', centerX + 5, padding - 5);
+            ctx.fillText('0', centerX + 3, height - padding + 12);
+            ctx.fillText('-' + xRange, padding, height - padding + 12);
+            ctx.fillText('+' + xRange, width - padding - 20, height - padding + 12);
+            ctx.fillText(Math.round(maxH) + '', centerX + 5, padding + 10);
+
+            // Draw trajectory line (y theo x, x luôn = 0 nên là đường thẳng đứng)
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00f3ff';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+
+            for (let i = 0; i < simulation.heightHistory.length; i++) {
+                const point = simulation.heightHistory[i];
+                // x = 0 -> vẽ tại centerX
+                const canvasX = centerX + (point.x / xRange) * (width / 2 - padding);
+                const canvasY = height - padding - (point.h / maxH) * (height - 2 * padding);
+
+                if (i === 0) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+
+            // Draw current position marker
+            if (simulation.heightHistory.length > 0) {
+                const lastPoint = simulation.heightHistory[simulation.heightHistory.length - 1];
+                const markerX = centerX + (lastPoint.x / xRange) * (width / 2 - padding);
+                const markerY = height - padding - (lastPoint.h / maxH) * (height - 2 * padding);
+                
+                ctx.fillStyle = '#00f3ff';
+                ctx.beginPath();
+                ctx.arc(markerX, markerY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawHeightTimeChart() {
+            const ctx = heightTimeCtx;
+            const width = heightTimeCanvas.width;
+            const height = heightTimeCanvas.height;
+            const padding = 40;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (simulation.heightHistory.length < 2) return;
+
+            const maxH = Math.max(...simulation.heightHistory.map(p => p.h), 100);
+            const maxT = Math.max(...simulation.timeHistory, 1);
+
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + (i / 4) * (height - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            for (let i = 0; i <= 4; i++) {
+                const x = padding + (i / 4) * (width - 2 * padding);
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Draw axis labels
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '11px Inter';
+            ctx.fillText('t (s)', width - 30, height - padding + 15);
+            ctx.fillText('y (m)', padding - 30, padding + 5);
+            ctx.fillText('0', padding - 10, height - padding + 12);
+            ctx.fillText(Math.round(maxT) + 's', width - padding - 15, height - padding + 12);
+            ctx.fillText(Math.round(maxH) + 'm', padding - 35, padding + 10);
+
+            // Draw trajectory line
+            ctx.strokeStyle = '#ffd93d';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#ffd93d';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+
+            for (let i = 0; i < simulation.heightHistory.length; i++) {
+                const h = simulation.heightHistory[i].h;
+                const t = simulation.timeHistory[i];
+                const canvasX = padding + (t / maxT) * (width - 2 * padding);
+                const canvasY = height - padding - (h / maxH) * (height - 2 * padding);
+
+                if (i === 0) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+
+            // Draw current position marker
+            if (simulation.heightHistory.length > 0) {
+                const lastH = simulation.heightHistory[simulation.heightHistory.length - 1].h;
+                const lastT = simulation.timeHistory[simulation.timeHistory.length - 1];
+                const markerX = padding + (lastT / maxT) * (width - 2 * padding);
+                const markerY = height - padding - (lastH / maxH) * (height - 2 * padding);
+                
+                ctx.fillStyle = '#ffd93d';
+                ctx.beginPath();
+                ctx.arc(markerX, markerY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawVelocityChart() {
+            const ctx = velocityCtx;
+            const width = velocityCanvas.width;
+            const height = velocityCanvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            if (simulation.velocityHistory.length < 2) return;
+
+            const velocities = simulation.velocityHistory.map(p => p.v);
+            const maxV = Math.max(...velocities, 100);
+            const minV = Math.min(...velocities, 0);
+            const range = maxV - minV || 1;
+            const maxT = Math.max(...simulation.velocityHistory.map(p => p.t), 1);
+
+            // Zero line position
+            const zeroY = height - ((0 - minV) / range) * height;
+
+            // Draw zero line
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.moveTo(0, zeroY);
+            ctx.lineTo(width, zeroY);
+            ctx.stroke();
+
+            // Draw line
+            ctx.strokeStyle = '#ff0055';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#ff0055';
+            ctx.shadowBlur = 5;
+            ctx.beginPath();
+
+            for (let i = 0; i < simulation.velocityHistory.length; i++) {
+                const point = simulation.velocityHistory[i];
+                const x = (point.t / maxT) * width;
+                const y = height - ((point.v - minV) / range) * height;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+    </script>
+</body>
+
+</html>
